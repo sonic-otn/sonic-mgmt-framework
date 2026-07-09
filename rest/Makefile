@@ -21,6 +21,10 @@ TOPDIR     := ..
 BUILD_DIR  ?= $(TOPDIR)/build
 
 GO     ?= go
+TRANSLIB_LDFLAGS ?=
+ifeq ($(strip $(ENABLE_TRANSLIB_ROLLBACK)),y)
+TRANSLIB_LDFLAGS += -X github.com/Azure/sonic-mgmt-common/translib.ENABLE_TRANSLIB_ROLLBACK=true
+endif
 GOROOT ?= $(shell $(GO) env GOROOT)
 
 REST_BUILD_DIR := $(BUILD_DIR)/rest_server
@@ -59,7 +63,7 @@ $(REST_BIN): $(REST_SRCS) | $(REST_BUILD_DIR)/
 ifeq ($(SONIC_COVERAGE_ON),y)
 	$(GO) test -mod=vendor -coverpkg="./..." -c -o $@ ../rest/main/main.go ../rest/main/main_test.go
 else
-	$(GO) build -mod=vendor -gcflags="all=-N -l" -v -o $@ ../rest/main/main.go
+	$(GO) build -mod=vendor -gcflags="all=-N -l" -v -o $@ -ldflags "$(TRANSLIB_LDFLAGS)" ../rest/main/main.go
 endif
 
 # Gotest binary for REST Server
